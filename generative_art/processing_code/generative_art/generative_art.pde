@@ -17,9 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 int screenWidth = 1152;
 int screenHeight = 340;
 
-// The number of screens the installation will be displayed across
-int numRects = 6;
-int xMultiplier = screenWidth / numRects;
+float initialGravity = -0.2;
+float initialVelocity = -1;
+
+// For screen configurations
+JSONArray screenCoords;
 
 /**
 The number of factors/populations we will base generative art on.
@@ -31,8 +33,8 @@ int yMultiplier = screenHeight / (numFactors + 1);
 int circleRadius = screenHeight / 7;
 int circleCount = 0;
 
-int femaleColor = color(180, 43, 106);
-int maleColor = color(136, 196, 230);
+int femaleColor = color(180, 43, 106, 200);
+int maleColor = color(136, 196, 230, 200);
 
 color [] circleColors = {femaleColor, maleColor};
 String [] ids = {"female", "male"};
@@ -51,26 +53,32 @@ IntDict toSeniorLevel;
 IntDict toExecLevel;
 
 
-void settings() {  
-  size(screenWidth, screenHeight);
-}
+//void settings() {  
+//  // size(screenWidth, screenHeight);
+//}
+
+// blue to pink color gradient array
+color black = color(0, 0, 0);
+color blue1 = color(114, 183, 235);
+color blue2 = color(106, 176, 238);
+color blue3 = color(101, 169, 239);
+color blue4 = color(102, 153, 241);
+color trueMid = color(115, 143, 237);
+color pink4 = color(136, 112, 227);
+color pink3 = color(159, 84, 210);
+color pink2 = color(148, 99, 220);
+color pink1 = color(170, 67, 199);
+
 
 void setup() {
+    fullScreen();
+    screenCoords = new JSONArray();
+  
     boundaryCoords = new JSONArray();
-    gCircles = new ConcurrentHashMap<Integer, GCircle>();
     
-    for (int i = 0; i < numRects; i++) {
-      int boundaryX = xMultiplier * i;
-      
-      JSONObject currBoundCoords = new JSONObject();
-      
-      currBoundCoords.setInt("left_bound", boundaryX);
-      currBoundCoords.setInt("right_bound", boundaryX + xMultiplier);
-      currBoundCoords.setInt("upper_bound", 0);
-      currBoundCoords.setInt("lower_bound", screenHeight);
-      
-      boundaryCoords.setJSONObject(i, currBoundCoords);
-    }
+    parseScreenCoords();
+        
+    gCircles = new ConcurrentHashMap<Integer, GCircle>();
     
     // Setup stats dict for progression to high school 
     //TODO: add sources
@@ -108,23 +116,76 @@ void setup() {
 void draw() {
     background(0, 0, 0);
     
-    for (int i = 0; i < numRects; i++) {
+    //for (int i = 0; i < boundaryCoords.size(); i++) {
+    //  JSONObject currCoord = boundaryCoords.getJSONObject(i);
+      
+    //  fill(255, 0, 0);
+    //  println(currCoord.getInt("left_bound"), currCoord.getInt("upper_bound"), currCoord.getInt("right_bound") - currCoord.getInt("left_bound"), currCoord.getInt("lower_bound") - currCoord.getInt("upper_bound"));
+    //  rect(currCoord.getInt("left_bound"), currCoord.getInt("upper_bound"), currCoord.getInt("right_bound") - currCoord.getInt("left_bound"), currCoord.getInt("lower_bound") - currCoord.getInt("upper_bound"));
+    //  println(mouseX, mouseY);
+      
+    //}
+    
+    for (int i = 0; i < boundaryCoords.size(); i++) {
+      int currLeftBoundary = boundaryCoords.getJSONObject(i).getInt("left_bound");
+      int currRightBoundary = boundaryCoords.getJSONObject(i).getInt("right_bound");
+      int currLowerBoundary = boundaryCoords.getJSONObject(i).getInt("lower_bound");
+      int currUpperBoundary = boundaryCoords.getJSONObject(i).getInt("upper_bound");
       stroke(255, 255, 255);
-      int currBoundaryX = boundaryCoords.getJSONObject(i).getInt("left_bound");
-      line(currBoundaryX, 0, currBoundaryX, screenHeight);
+      noFill();
+      rect(currUpperBoundary, currLeftBoundary, currLowerBoundary - currUpperBoundary, currRightBoundary - currLeftBoundary);
     }
 
     for(Map.Entry<Integer, GCircle> entry : gCircles.entrySet()) {
       GCircle gCircle = entry.getValue();
-      if (gCircle.currPanel >= numRects) {
+      if (gCircle.currPanel >= boundaryCoords.size()) {
         gCircles.remove(gCircle.index);
       } else {
         gCircle.move();
         gCircle.display();
       }
-    }
+    }   
+}
+
+void parseScreenCoords() {
+  screenCoords = loadJSONArray("screen_coords.json");
+    //JSONObject currBoundCoords = new JSONObject();
+      
+      //currBoundCoords.setInt("left_bound", boundaryX);
+      //currBoundCoords.setInt("right_bound", boundaryX + xMultiplier);
+      //currBoundCoords.setInt("upper_bound", 0);
+      //currBoundCoords.setInt("lower_bound", screenHeight);
+      
+    //  boundaryCoords.setJSONObject(i, currBoundCoords);
+  
+  for (int i = 0; i < screenCoords.size(); i++) {
+    JSONObject coord = screenCoords.getJSONObject(i);
     
-        
+    // Parsing JSON file for screen coords
+    int topLeftX = coord.getInt("top_left_x");
+    int topLeftY = coord.getInt("top_left_y");
+    int bottomRightX = coord.getInt("bottom_right_x");
+    int bottomRightY = coord.getInt("bottom_right_y");
+    
+    // Loading screen coords into generative art configuration
+    
+    // Have to swap x and y coordinates because of the Leeds projector system alignment.
+    int leftBound = bottomRightY;
+    int rightBound = topLeftY;
+    int upperBound = topLeftX;
+    int lowerBound = bottomRightX;
+    
+    JSONObject currBoundCoords = new JSONObject();
+    
+    currBoundCoords.setInt("left_bound", leftBound);
+    currBoundCoords.setInt("right_bound", rightBound);
+    currBoundCoords.setInt("upper_bound", upperBound);
+    currBoundCoords.setInt("lower_bound", lowerBound);
+    //println(topLeftX, topLeftY, bottomRightX, bottomRightY);
+    //println(leftBound, rightBound, upperBound, lowerBound);
+    
+    boundaryCoords.setJSONObject(i, currBoundCoords);
+  }
 }
 
 // Function to create circles in first stage
@@ -143,13 +204,20 @@ void addCircle(String identity) {
         yInd = 0;
         break;
     }
+    
+    int currLeftBoundary = boundaryCoords.getJSONObject(0).getInt("left_bound");
+    int currRightBoundary = boundaryCoords.getJSONObject(0).getInt("right_bound");
+    int currLowerBoundary = boundaryCoords.getJSONObject(0).getInt("lower_bound");
+    int currUpperBoundary = boundaryCoords.getJSONObject(0).getInt("upper_bound");
   
-  int circleX = boundaryCoords.getJSONObject(0).getInt("left_bound") + (xMultiplier / 2);
-  int circleY = boundaryCoords.getJSONObject(0).getInt("upper_bound") + (yMultiplier * (yInd + 1));
+  int circleY = currLeftBoundary + ((currRightBoundary - currLeftBoundary) / 2);
+  
+  int xMultiplier = (currLowerBoundary - currUpperBoundary) / (numFactors + 1);
+  int circleX = currUpperBoundary + (xMultiplier * (yInd + 1));
   
   PVector loc = new PVector(circleX, circleY);
-  PVector vel = new PVector(1, 0);
-  PVector g = new PVector(0.2, 0);
+  PVector vel = new PVector(0, initialVelocity);
+  PVector g = new PVector(0, initialGravity);
   
   
   int currPanel = 0;
@@ -205,19 +273,19 @@ class GCircle {
     
     // Add gravity to the velocity
     velocity.add(gravity);
-
-    if ((location.x > (currRightBound - circleR / 2)) || (location.x < (currLeftBound - (circleR / 2)))) {
+        
+    if ((location.y < (currLeftBound + circleR / 2)) || (location.y > (currRightBound + (circleR / 2)))) {
       if (bounceCount == 0){
-        println(velocity.x);
         // TODO: this is hacky, can i fix?
-        velocity.x = 5.599999;
+        velocity.y = -5.599999;
       }
-      velocity.x = velocity.x * -0.97;
+      velocity.y = velocity.y * -0.97;
       bounceCount++;
       // Wait until it has bounced 10 times, otherwise moves too fast
       if (bounceCount > 10) {
         int chance = int(random(0, 100));
         int panelStat = getPanelStats(currPanel, id);
+
         if (chance <= panelStat) {
           progressToNextPanel();
         }
@@ -227,12 +295,32 @@ class GCircle {
   
   void progressToNextPanel() {
     currPanel++;
-    if (currPanel < numRects) {
-      location.x = boundaryCoords.getJSONObject(currPanel).getInt("left_bound");
-      velocity.x = 1;
-      gravity.x = 0.2;
+    if (circleCount >= 300) {
+      gCircles.clear();
+      circleCount = 0;
+      delay(500);
+      addCircle("male");
+      addCircle("female");
+    }
+    if (currPanel < boundaryCoords.size()) {
+      int prevLowerBoundary = boundaryCoords.getJSONObject(currPanel - 1).getInt("lower_bound");
+      int prevUpperBoundary = boundaryCoords.getJSONObject(currPanel - 1).getInt("upper_bound");
+      
+      int currLowerBoundary = boundaryCoords.getJSONObject(currPanel).getInt("lower_bound");
+      int currUpperBoundary = boundaryCoords.getJSONObject(currPanel).getInt("upper_bound");
+      
+      location.y = boundaryCoords.getJSONObject(currPanel).getInt("right_bound");
+      location.x = location.x + ((currLowerBoundary - currUpperBoundary) / 2) + ((prevLowerBoundary - prevUpperBoundary) / 2);
+      
+      int maleFemale = id == "female" ? 1 : 2;
+      
+      location.x = currUpperBoundary + (((currLowerBoundary  - currUpperBoundary) / (numFactors + 1)) * maleFemale);
+      
+      velocity.y = initialVelocity;
+      gravity.y = initialGravity;
       bounceCount = 0;
       addCircle(id);
+      println(circleCount);
     }
   }
   
@@ -245,19 +333,21 @@ class GCircle {
         panelStat = toHighSchool.get(identity);
         break;
       case 1:
-        panelStat = toHighSchool.get(identity);
+        panelStat = toCollege.get(identity);
         break;
       case 2:
-        panelStat = toHighSchool.get(identity);
+        panelStat = toEntryLevel.get(identity);
         break;
       case 3:
-        panelStat = toHighSchool.get(identity);
+        panelStat = toSeniorLevel.get(identity);
         break;
       case 4:
-        panelStat = toHighSchool.get(identity);
+        panelStat = toExecLevel.get(identity);
+        println("becoming execs");
         break;
       case 5:
-        panelStat = toHighSchool.get(identity);
+        println("all done");
+        panelStat = -1;
         break;
     }
     
