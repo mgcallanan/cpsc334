@@ -33,6 +33,8 @@ ConcurrentHashMap<Integer, GCircle> gCircles;
 // JSONArray to store boundary coords of the screens
 JSONArray boundaryCoords;
 
+int maxCircles = 200;
+
 // String dicts of stats of progression between phases
 IntDict toHighSchool;
 IntDict toCollege;
@@ -111,6 +113,9 @@ void draw() {
       int currLowerBoundary = boundaryCoords.getJSONObject(i).getInt("lower_bound");
       int currUpperBoundary = boundaryCoords.getJSONObject(i).getInt("upper_bound");
       stroke(255, 255, 255);
+      if (panels.get(i).maleCount == 0 && panels.get(i).femaleCount == 0) {
+        panels.get(i).backgroundColor = black;
+      }
       fill(panels.get(i).backgroundColor);
       rect(currUpperBoundary, currLeftBoundary, currLowerBoundary - currUpperBoundary, currRightBoundary - currLeftBoundary);
     }
@@ -284,12 +289,17 @@ class GCircle {
   
   void progressToNextPanel() {
     currPanel++;
-    if (circleCount >= 200) {
+    if (circleCount >= maxCircles) {
       gCircles.clear();
       circleCount = 0;
       delay(500);
+      bounceCount = 0;
+      for(int i = 0; i < panels.size(); i++) {
+        panels.set(i, new Panel(i, 0, 0, black));
+      }
       addCircle("male");
       addCircle("female");
+      return;
     }
     if (currPanel < boundaryCoords.size()) {
       int prevLowerBoundary = boundaryCoords.getJSONObject(currPanel - 1).getInt("lower_bound");
@@ -317,8 +327,12 @@ class GCircle {
       }
       
       float prevMaleFemaleProportion = floor(float(prevPanelObj.femaleCount) / float(prevPanelObj.maleCount + prevPanelObj.femaleCount) * 8);
-      prevPanelObj.backgroundColor = pinkBlueColorGradient[int(prevMaleFemaleProportion)];
-  
+
+      if (prevPanelObj.maleCount == 0 && prevPanelObj.femaleCount == 0) {
+        prevPanelObj.backgroundColor = black;
+      } else {
+        prevPanelObj.backgroundColor = pinkBlueColorGradient[int(prevMaleFemaleProportion)];
+      }
       
       Panel currPanelObj = panels.get(currPanel);
       if (id == "male") {
@@ -328,6 +342,7 @@ class GCircle {
       }
       
       float maleFemaleProportion = floor(float(currPanelObj.femaleCount) / float(currPanelObj.maleCount + currPanelObj.femaleCount) * 8);
+
       currPanelObj.backgroundColor = pinkBlueColorGradient[int(maleFemaleProportion)];
       
       addCircle(id);
@@ -353,10 +368,8 @@ class GCircle {
         break;
       case 4:
         panelStat = toExecLevel.get(identity);
-        println("becoming execs");
         break;
       case 5:
-        println("all done");
         panelStat = -1;
         break;
     }
