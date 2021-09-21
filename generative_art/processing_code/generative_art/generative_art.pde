@@ -53,6 +53,25 @@ IntDict toSeniorLevel;
 IntDict toExecLevel;
 
 
+// Variables for panel background color changes
+// blue to pink color gradient array
+color black = color(0, 0, 0);
+color blue1 = color(0, 32, 235);
+color blue2 = color(12, 30, 223);
+color blue3 = color(28, 27, 208);
+color blue4 = color(53, 24, 184);
+color trueMid = color(82, 24, 157);
+color pink4 = color(113, 25, 127);
+color pink3 = color(124, 26, 113);
+color pink2 = color(157, 32, 82);
+color pink1 = color(229, 49, 36);
+
+color [] pinkBlueColorGradient = {blue1, blue2, blue3, blue4, trueMid, pink4, pink3, pink2, pink1};
+
+ArrayList<Panel> panels = new ArrayList<Panel>();
+
+
+
 //void settings() {  
 //  // size(screenWidth, screenHeight);
 //}
@@ -71,7 +90,7 @@ color pink1 = color(170, 67, 199);
 
 
 void setup() {
-    fullScreen();
+    fullScreen(0);
     screenCoords = new JSONArray();
   
     boundaryCoords = new JSONArray();
@@ -132,7 +151,7 @@ void draw() {
       int currLowerBoundary = boundaryCoords.getJSONObject(i).getInt("lower_bound");
       int currUpperBoundary = boundaryCoords.getJSONObject(i).getInt("upper_bound");
       stroke(255, 255, 255);
-      noFill();
+      fill(panels.get(i).backgroundColor);
       rect(currUpperBoundary, currLeftBoundary, currLowerBoundary - currUpperBoundary, currRightBoundary - currLeftBoundary);
     }
 
@@ -210,6 +229,8 @@ void addCircle(String identity) {
     int currLowerBoundary = boundaryCoords.getJSONObject(0).getInt("lower_bound");
     int currUpperBoundary = boundaryCoords.getJSONObject(0).getInt("upper_bound");
   
+  int circleR = (currLowerBoundary - currUpperBoundary) / 7;
+  
   int circleY = currLeftBoundary + ((currRightBoundary - currLeftBoundary) / 2);
   
   int xMultiplier = (currLowerBoundary - currUpperBoundary) / (numFactors + 1);
@@ -221,8 +242,18 @@ void addCircle(String identity) {
   
   
   int currPanel = 0;
+
+  Panel currPanelObj = panels.get(currPanel);
+  if (identity == "male") {
+    currPanelObj.maleCount += 1;
+  } else if (identity == "female") {
+    currPanelObj.femaleCount += 1;
+  }
   
-  GCircle currCircle = new GCircle(circleCount, circleX, circleY, circleRadius, currPanel, fc, identity, loc, vel, g);
+  float maleFemaleProportion = floor(float(currPanelObj.femaleCount) / float(currPanelObj.maleCount + currPanelObj.femaleCount) * 8);
+  currPanelObj.backgroundColor = pinkBlueColorGradient[int(maleFemaleProportion)];
+  
+  GCircle currCircle = new GCircle(circleCount, circleX, circleY, circleR, currPanel, fc, identity, loc, vel, g);
   gCircles.put(circleCount, currCircle);
   circleCount++;
   
@@ -273,11 +304,18 @@ class GCircle {
     
     // Add gravity to the velocity
     velocity.add(gravity);
-        
-    if ((location.y < (currLeftBound + circleR / 2)) || (location.y > (currRightBound + (circleR / 2)))) {
-      if (bounceCount == 0){
+
+    //println(circleR, bounceCount, currLeftBound + circleR / 2, location.y, currRightBound + circleR / 2);
+    if ((location.y < (currLeftBound + (circleR / 2))) || (location.y > (currRightBound + (circleR / 2)))) {
+      if (bounceCount == 0 && currPanel != 0){
         // TODO: this is hacky, can i fix?
-        velocity.y = -5.599999;
+        println(velocity.y);
+        //velocity.y = -10.799994;
+        if (currPanel != 2 && currPanel != 3) {
+          velocity.y = velocity.y / 1.5;
+        } else {
+          velocity.y = velocity.y / 1.2;
+        }
       }
       velocity.y = velocity.y * -0.97;
       bounceCount++;
@@ -295,7 +333,7 @@ class GCircle {
   
   void progressToNextPanel() {
     currPanel++;
-    if (circleCount >= 300) {
+    if (circleCount >= 200) {
       gCircles.clear();
       circleCount = 0;
       delay(500);
@@ -308,19 +346,40 @@ class GCircle {
       
       int currLowerBoundary = boundaryCoords.getJSONObject(currPanel).getInt("lower_bound");
       int currUpperBoundary = boundaryCoords.getJSONObject(currPanel).getInt("upper_bound");
-      
-      location.y = boundaryCoords.getJSONObject(currPanel).getInt("right_bound");
-      location.x = location.x + ((currLowerBoundary - currUpperBoundary) / 2) + ((prevLowerBoundary - prevUpperBoundary) / 2);
-      
+            
       int maleFemale = id == "female" ? 1 : 2;
       
+      location.y = boundaryCoords.getJSONObject(currPanel).getInt("right_bound");
       location.x = currUpperBoundary + (((currLowerBoundary  - currUpperBoundary) / (numFactors + 1)) * maleFemale);
       
       velocity.y = initialVelocity;
       gravity.y = initialGravity;
       bounceCount = 0;
+
+
+      Panel prevPanelObj = panels.get(currPanel - 1);
+      
+      if (id == "male") {
+        prevPanelObj.maleCount -= 1;
+      } else if (id == "female") {
+        prevPanelObj.femaleCount -= 1;
+      }
+      
+      float prevMaleFemaleProportion = floor(float(prevPanelObj.femaleCount) / float(prevPanelObj.maleCount + prevPanelObj.femaleCount) * 8);
+      prevPanelObj.backgroundColor = pinkBlueColorGradient[int(prevMaleFemaleProportion)];
+  
+      
+      Panel currPanelObj = panels.get(currPanel);
+      if (id == "male") {
+        currPanelObj.maleCount += 1;
+      } else if (id == "female") {
+        currPanelObj.femaleCount += 1;
+      }
+      
+      float maleFemaleProportion = floor(float(currPanelObj.femaleCount) / float(currPanelObj.maleCount + currPanelObj.femaleCount) * 8);
+      currPanelObj.backgroundColor = pinkBlueColorGradient[int(maleFemaleProportion)];
+      
       addCircle(id);
-      println(circleCount);
     }
   }
   
@@ -353,8 +412,18 @@ class GCircle {
     
     return panelStat;
   }
-  
-  
-  
 }
+
+class Panel {
+  int index;             // the index of the panel
+  int maleCount;         // the blue/male circle count
+  int femaleCount;       // the pink/female circle count
+  color backgroundColor; //the background color of the panel
   
+  Panel(int i, int mc, int fc, color bc) {
+    index = i;
+    maleCount = mc;
+    femaleCount = fc;
+    backgroundColor = bc;
+  }
+}
