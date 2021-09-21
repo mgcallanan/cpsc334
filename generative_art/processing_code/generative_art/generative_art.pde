@@ -1,18 +1,6 @@
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// FOR VERTICAL ORIENTATION
-//int screenHeight = 768;
-//int screenWidth = 8000;
-
-// Scaled down 5 times for local work
-//int screenHeight = 154;
-//int screenWidth = 1600;
-
-// FOR HORIZONTAL ORIENTATION
-//int screenWidth = 4608;
-//int screenHeight = 1360;
-
 // Scaled down 4 times for local work 
 int screenWidth = 1152;
 int screenHeight = 340;
@@ -71,24 +59,6 @@ color [] pinkBlueColorGradient = {blue1, blue2, blue3, blue4, trueMid, pink4, pi
 ArrayList<Panel> panels = new ArrayList<Panel>();
 
 
-
-//void settings() {  
-//  // size(screenWidth, screenHeight);
-//}
-
-// blue to pink color gradient array
-color black = color(0, 0, 0);
-color blue1 = color(114, 183, 235);
-color blue2 = color(106, 176, 238);
-color blue3 = color(101, 169, 239);
-color blue4 = color(102, 153, 241);
-color trueMid = color(115, 143, 237);
-color pink4 = color(136, 112, 227);
-color pink3 = color(159, 84, 210);
-color pink2 = color(148, 99, 220);
-color pink1 = color(170, 67, 199);
-
-
 void setup() {
     fullScreen(0);
     screenCoords = new JSONArray();
@@ -135,16 +105,6 @@ void setup() {
 void draw() {
     background(0, 0, 0);
     
-    //for (int i = 0; i < boundaryCoords.size(); i++) {
-    //  JSONObject currCoord = boundaryCoords.getJSONObject(i);
-      
-    //  fill(255, 0, 0);
-    //  println(currCoord.getInt("left_bound"), currCoord.getInt("upper_bound"), currCoord.getInt("right_bound") - currCoord.getInt("left_bound"), currCoord.getInt("lower_bound") - currCoord.getInt("upper_bound"));
-    //  rect(currCoord.getInt("left_bound"), currCoord.getInt("upper_bound"), currCoord.getInt("right_bound") - currCoord.getInt("left_bound"), currCoord.getInt("lower_bound") - currCoord.getInt("upper_bound"));
-    //  println(mouseX, mouseY);
-      
-    //}
-    
     for (int i = 0; i < boundaryCoords.size(); i++) {
       int currLeftBoundary = boundaryCoords.getJSONObject(i).getInt("left_bound");
       int currRightBoundary = boundaryCoords.getJSONObject(i).getInt("right_bound");
@@ -168,15 +128,8 @@ void draw() {
 
 void parseScreenCoords() {
   screenCoords = loadJSONArray("screen_coords.json");
-    //JSONObject currBoundCoords = new JSONObject();
-      
-      //currBoundCoords.setInt("left_bound", boundaryX);
-      //currBoundCoords.setInt("right_bound", boundaryX + xMultiplier);
-      //currBoundCoords.setInt("upper_bound", 0);
-      //currBoundCoords.setInt("lower_bound", screenHeight);
-      
-    //  boundaryCoords.setJSONObject(i, currBoundCoords);
-  
+
+
   for (int i = 0; i < screenCoords.size(); i++) {
     JSONObject coord = screenCoords.getJSONObject(i);
     
@@ -200,9 +153,9 @@ void parseScreenCoords() {
     currBoundCoords.setInt("right_bound", rightBound);
     currBoundCoords.setInt("upper_bound", upperBound);
     currBoundCoords.setInt("lower_bound", lowerBound);
-    //println(topLeftX, topLeftY, bottomRightX, bottomRightY);
-    //println(leftBound, rightBound, upperBound, lowerBound);
-    
+
+
+    panels.add(new Panel(i, 0, 0, black));
     boundaryCoords.setJSONObject(i, currBoundCoords);
   }
 }
@@ -305,11 +258,9 @@ class GCircle {
     // Add gravity to the velocity
     velocity.add(gravity);
 
-    //println(circleR, bounceCount, currLeftBound + circleR / 2, location.y, currRightBound + circleR / 2);
     if ((location.y < (currLeftBound + (circleR / 2))) || (location.y > (currRightBound + (circleR / 2)))) {
       if (bounceCount == 0 && currPanel != 0){
         // TODO: this is hacky, can i fix?
-        println(velocity.y);
         //velocity.y = -10.799994;
         if (currPanel != 2 && currPanel != 3) {
           velocity.y = velocity.y / 1.5;
