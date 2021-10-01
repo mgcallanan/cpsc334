@@ -6,7 +6,7 @@ int JoyStick_button = 32; // IO Pin
 
 int toggle = 33; // Toggle IO Pin
 
-int push_button = 25; // Push Button IO Pin
+int push_button = 27; // Push Button IO Pin
 
 void setup()
 
