@@ -1,8 +1,12 @@
-int JoyStick_X = A6; // Analog Pin  X
+int JoyStick_X = 34; // Analog Pin  X
 
-int JoyStick_Y = A7; // // Analog Pin  Y
+int JoyStick_Y = 35; // // Analog Pin  Y
 
 int JoyStick_button = 32; // IO Pin
+
+int toggle = 33; // Toggle IO Pin
+
+int push_button = 25; // Push Button IO Pin
 
 void setup()
 
@@ -14,6 +18,10 @@ void setup()
 
     pinMode(JoyStick_button, INPUT_PULLUP);
 
+    pinMode(toggle, INPUT);
+    
+    pinMode(push_button, INPUT);
+
     Serial.begin(115200);
 
 }
@@ -22,17 +30,21 @@ void loop()
 
 {
 
-    int x, y, button;
+    int x, y, button, toggle_input, push_button_input;
 
     x = analogRead(JoyStick_X); //  X
 
     y = analogRead(JoyStick_Y); //  Y
 
-    button = digitalRead(JoyStick_button); // 
+    button = digitalRead(JoyStick_button); // joystick switch
 
-    x = map(x, 0, 1023, -512, 512);
+    toggle_input = digitalRead(toggle); // toggle button
 
-    y = map(y, 0, 1023, 512, -512);
+    push_button_input = digitalRead(push_button); // push button
+
+    x = map(x, 0, 4095, -512, 512);
+
+    y = map(y, 0, 4095, 512, -512);
 
     
 
@@ -46,7 +58,15 @@ void loop()
 
     Serial.print(" , B : ");
 
-    Serial.println(button, DEC);
+    Serial.print(button, DEC);
+
+    Serial.print(" , TOG : ");
+
+    Serial.print(toggle_input, DEC);
+
+    Serial.print(" , PB : ");
+
+    Serial.println(push_button_input, DEC);
 
     delay(100);
 
