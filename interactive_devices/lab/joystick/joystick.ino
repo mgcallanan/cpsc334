@@ -46,25 +46,23 @@ void loop()
 
     y = map(y, 0, 4095, 512, -512);
 
-    
-
-    Serial.print("X : ");
+    // printing out : JOYSTICK_X,JOYSTICK_Y,JOTSTICK_SW,TOGGLE,PUSH_BUTTON
 
     Serial.print(x, DEC);
 
-    Serial.print(" / Y : ");
+    Serial.print(",");
 
     Serial.print(y, DEC);
 
-    Serial.print(" , B : ");
+    Serial.print(",");
 
     Serial.print(button, DEC);
 
-    Serial.print(" , TOG : ");
+    Serial.print(",");
 
     Serial.print(toggle_input, DEC);
 
-    Serial.print(" , PB : ");
+    Serial.print(",");
 
     Serial.println(push_button_input, DEC);
 
