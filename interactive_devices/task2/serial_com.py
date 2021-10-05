@@ -3,7 +3,7 @@ import sys
 import pygame
 
 pygame.init()
-
+pygame.mixer.init(49000, -16, 1, 1024)
 # Button Variables
 
 push_button_count = 0
@@ -29,11 +29,25 @@ ser = serial.Serial(port,baudrate,timeout=0.001)
 # PyGame Variables
 initial_volume = 0.5
 ambient_street_noise = pygame.mixer.Sound("./music/ambient_street_noise.wav")
-ambient_street_noise.set_volume(0.5)
+ambient_street_noise.set_volume(initial_volume)
+street_noise_playing = False
+
 engine_rev = pygame.mixer.Sound("./music/engine_rev_1.wav")
-engine_rev.set_volume(0.5)
+engine_rev.set_volume(initial_volume)
+engine_rev_playing = False
+
 siren = pygame.mixer.Sound("./music/siren_1.wav")
-siren.set_volume(0.5)
+siren.set_volume(initial_volume)
+siren_playing = False
+
+drivers_license = pygame.mixer.Sound("./music/drivers_license.wav")
+drivers_license.set_volume(initial_volume)
+dl_playing = False
+
+honk = pygame.mixer.Sound("./music/honk.wav")
+honk.set_volume(initial_volume)
+honk_playing = False
+
 
 pause = False
 
@@ -41,46 +55,74 @@ def push_button_ctl(push_button_pos):
     global pause
     global push_button_count
 
+    global engine_rev_playing
+    global dl_playing
+    global siren_playing 
+    
+    # Reset push button count if it gets too high
+    if push_button_count >= 80:
+        push_button_count = 0
+
     push_button_count += push_button_pos
 
-    if push_button_count >= 20 and not toggle_off:
-        print("OKay playing engine rev")
-        engine_rev.play()
+    if push_button_count >= 60 and not toggle_off:
+        print("play driver's license")
+        if not dl_playing:
+            drivers_license.play(-1)
+            dl_playing = True
     elif push_button_count >= 40 and not toggle_off:
         print("okay playing siren")
-        siren.play()
-    elif push_button_count >= 60 and not toggle_off:
-        print("play driver's license")
-        siren.play()
+        if not siren_playing:
+            siren.play(-1)
+            siren_playing = True
+    elif push_button_count >= 20 and not toggle_off:
+        print("OKay playing engine rev")
+        if not engine_rev_playing:
+            engine_rev.play(-1)
+            engine_rev_playing = True
 
 def joystick_ctl(joy_x, joy_y, joy_sw):
     # Adjust volume using Joy X
-    if joy_x > JOY_ERROR_RANGE:
-        curr_volume = ambient_street_noise.get_volume()
-        map_joy = joy_x / JOY_MAX
-        map_joy = map_joy if map_joy > 0 else map_joy * -1
-        ambient_street_noise.set_volume(map_joy )
-        print(map_joy)
-        print(curr_volume)
-    elif joy_x < (0 - JOY_ERROR_RANGE):
+    curr_volume = ambient_street_noise.get_volume()
+
+    new_volume = 0 + ((1.0 - 0) / (JOY_MAX - JOY_MIN)) * (joy_x - JOY_MIN)
+    print(new_volume)
+    ambient_street_noise.set_volume(new_volume)
+    siren.set_volume(new_volume)
+    engine_rev.set_volume(new_volume)
+    print(curr_volume)
+    if not joy_sw:
+        honk.play()
 
 # Function that runs based on toggle switch position
 def toggle_ctl(tog_pos):
     global toggle_off
+    global street_noise_playing
+    global engine_rev_playing
+    global dl_playing
+    global siren_playing 
+    global honk_playing
+
     if tog_pos == 1:
         print("tog would e playing")
         toggle_off = False
-        ambient_street_noise.play()
+        if not street_noise_playing:
+            ambient_street_noise.play(-1)
+            street_noise_playing = True
     else:
         toggle_off = True
         pygame.mixer.stop()
+        street_noise_playing = False
+        engine_rev_playing = False
+        dl_playing = False
+        siren_playing = False
+        honk_playing = False
 
 
 
 
 # Initialize PyGame
 # pygame.init()
-pygame.mixer.init(40000, -16, 4, 1024)
 
 while True:
     data = ser.read(1)
