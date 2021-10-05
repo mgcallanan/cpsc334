@@ -6,7 +6,7 @@ pygame.init()
 pygame.mixer.init(49000, -16, 1, 1024)
 # Button Variables
 
-push_button_count = 0
+joy_sw_count = 0
 toggle_off = True
 
 ## Button string indexes
@@ -53,37 +53,25 @@ pause = False
 
 def push_button_ctl(push_button_pos):
     global pause
-    global push_button_count
+    global joy_sw_count
 
     global engine_rev_playing
     global dl_playing
     global siren_playing 
-    
-    # Reset push button count if it gets too high
-    if push_button_count >= 80:
-        push_button_count = 0
 
-    push_button_count += push_button_pos
-
-    if push_button_count >= 60 and not toggle_off:
-        print("play driver's license")
-        if not dl_playing:
-            drivers_license.play(-1)
-            dl_playing = True
-    elif push_button_count >= 40 and not toggle_off:
-        print("okay playing siren")
-        if not siren_playing:
-            siren.play(-1)
-            siren_playing = True
-    elif push_button_count >= 20 and not toggle_off:
-        print("OKay playing engine rev")
-        if not engine_rev_playing:
-            engine_rev.play(-1)
-            engine_rev_playing = True
+    if push_button_pos:
+        honk.play()
 
 def joystick_ctl(joy_x, joy_y, joy_sw):
+
+    global joy_sw_count
+    global engine_rev_playing
+    global dl_playing
+    global siren_playing 
+
     # Adjust volume using Joy X
     curr_volume = ambient_street_noise.get_volume()
+    print(curr_volume)
 
     new_volume = 0 + ((1.0 - 0) / (JOY_MAX - JOY_MIN)) * (joy_x - JOY_MIN)
     print(new_volume)
@@ -91,8 +79,29 @@ def joystick_ctl(joy_x, joy_y, joy_sw):
     siren.set_volume(new_volume)
     engine_rev.set_volume(new_volume)
     print(curr_volume)
+
+    # Reset push button count if it gets too high
+    if joy_sw_count >= 80:
+        joy_sw_count = 0
+
     if not joy_sw:
-        honk.play()
+        joy_sw_count += 1
+
+    if joy_sw_count >= 60 and not toggle_off:
+        print("play driver's license")
+        if not dl_playing:
+            drivers_license.play()            
+            dl_playing = True
+    elif joy_sw_count >= 40 and not toggle_off:
+        print("okay playing siren")
+        if not siren_playing:
+            siren.play()
+            siren_playing = True
+    elif joy_sw_count >= 20 and not toggle_off:
+        print("OKay playing engine rev")
+        if not engine_rev_playing:
+            engine_rev.play()
+            engine_rev_playing = True
 
 # Function that runs based on toggle switch position
 def toggle_ctl(tog_pos):
@@ -147,4 +156,4 @@ while True:
         push_button_pos = int(current_button_positions[PUSH_BUTTON_IND])
         push_button_ctl(push_button_pos)
     
-        print(joystick_x_pos, joystick_y_pos, joystick_sw_pos, toggle_pos, push_button_pos, push_button_count)
+        print(joystick_x_pos, joystick_y_pos, joystick_sw_pos, toggle_pos, push_button_pos, joy_sw_count)
