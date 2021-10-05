@@ -55,13 +55,14 @@ def push_button_ctl(push_button_pos):
 
 def joystick_ctl(joy_x, joy_y, joy_sw):
     # Adjust volume using Joy X
-    if joy_x > JOY_ERROR_RANGE or joy_x < (0 - JOY_ERROR_RANGE):
+    if joy_x > JOY_ERROR_RANGE:
         curr_volume = ambient_street_noise.get_volume()
         map_joy = joy_x / JOY_MAX
         map_joy = map_joy if map_joy > 0 else map_joy * -1
         ambient_street_noise.set_volume(map_joy )
         print(map_joy)
         print(curr_volume)
+    elif joy_x < (0 - JOY_ERROR_RANGE):
 
 # Function that runs based on toggle switch position
 def toggle_ctl(tog_pos):
