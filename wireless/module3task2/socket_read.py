@@ -8,7 +8,11 @@ DISTANCE_IND = 2
 
 # Set up receiving for ESP32 wifi messages
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
-s.bind(("172.29.28.52", 8090 )) # Local ip address
+# Maansi Laptop IP
+# s.bind(("172.29.28.52", 8090 )) # Local ip address
+
+# Mary Laptop IP
+s.bind(("172.29.16.220", 8092 )) # Local ip address
 
 # Set up sending OSC messages to supercollider
 sc_client = udp_client.SimpleUDPClient("127.0.0.1", 57120) # Default ip and port for SC

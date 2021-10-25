@@ -2,6 +2,7 @@
 #include <WiFiUdp.h>
 
 int photoResistor = 34;
+int piezo = 35;
 
 // WiFi network name and password:
 //const char * networkName = "yale wireless";
@@ -13,14 +14,10 @@ const char * networkPswd = "BeCre@tive!";
 //IP address to send UDP data to:
 // either use the ip address of the server or 
 // a network broadcast address
-//const char * udpAddress = "172.29.16.220";
-//const int udpPort = 8092;
 
-const char * udpAddress = "172.20.10.8";
-const int udpPort = 8092;
+const char * espUdpAddress = "192.168.4.1";
+const int espUdpPort = 8088;
 
-IPAddress server(172,20,10,8);
-WiFiClient client;
 
 //Are we currently connected?
 boolean connected = false;
@@ -37,10 +34,14 @@ void setup(){
   Serial.begin(115200);
 
   //Connect to the WiFi network
-  connectToWiFi(networkName, networkPswd);
+   connectToWiFi(networkName, networkPswd);
 }
 
 void loop(){
+  // piezoelectric board
+//  float pie = analogRead(piezo);
+//  Serial.print("pie ");
+//  Serial.println(pie);
   float values = analogRead(photoResistor);
   // Serial.println(String(values) + " maansi");
   //int values = random(0, 100); // GENERATE TEST FLOAT or
@@ -51,12 +52,12 @@ void loop(){
   long rssi = WiFi.RSSI();
   Serial.print("RSSI:");
   Serial.println(rssi);
-
-  // Connect to other ESP
-  client.connect(server, 80);
-  client.print(rssi + "\r");
-  client.flush();
-  client.stop();
+  
+  if (connected) {
+    udp.beginPacket(espUdpAddress,espUdpPort);
+    udp.print(String(rssi));
+    udp.endPacket();
+  }
   
   //Wait for 1 second
   delay(10);
@@ -85,7 +86,7 @@ void WiFiEvent(WiFiEvent_t event){
           Serial.println(WiFi.localIP());  
           //initializes the UDP state
           //This initializes the transfer buffer
-          udp.begin(WiFi.localIP(),udpPort);
+          udp.begin(WiFi.localIP(),espUdpPort);
           connected = true;
           break;
       case SYSTEM_EVENT_STA_DISCONNECTED:
