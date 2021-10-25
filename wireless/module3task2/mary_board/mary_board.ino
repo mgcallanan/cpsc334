@@ -1,7 +1,7 @@
 #include "WiFi.h"
 #include <WiFiUdp.h>
 
-int photoResistor = 34;
+int pizoelectric = 34;
 
 // WiFi network name and password:
 const char * networkName = "yale wireless";
@@ -26,7 +26,6 @@ WiFiUDP udp;
 byte command[27] = {0x20, 0x00, 0x00, 0x00, 0x16, 0x02, 0x62, 0x3A, 0xD5, 0xED, 0xA3, 0x01, 0xAE, 0x08, 0x2D, 0x46, 0x61, 0x41, 0xA7, 0xF6, 0xDC, 0xAF, 0xD3, 0xE6, 0x00, 0x00, 0x1E};
 
 void setup(){
-  pinMode(photoResistor, INPUT);
   
   // Initilize hardware serial:
   Serial.begin(115200);
@@ -36,21 +35,18 @@ void setup(){
 }
 
 void loop(){
-  int maryValue = analogRead(photoResistor);
-  int maansiValue = random(5);
+  int maryPizoValue = analogRead(pizoelectric);
+  Serial.println(maryPizoValue);
+  int maansiPizoValue = random(4096);
   int distance = random(5);
-  // Serial.println(String(values) + " mary");
-  //int values = random(0, 100); // GENERATE TEST FLOAT or
-  // int values = hallRead();
-  //String msg = String(values); // CONVERT FLOAT TO STRING
-  Serial.print("Stations connected: ");
-  Serial.println(WiFi.softAPgetStationNum());
-  delay(5000);
+//  Serial.print("Stations connected: ");
+//  Serial.println(WiFi.softAPgetStationNum());
+  delay(100);
   //only send data when connected
   if(connected){
     //Send a packet
     udp.beginPacket(udpAddress,udpPort);
-    udp.print(String(maryValue) + ", " + String(maansiValue) + ", " + String(distance));
+    udp.print(String(maryPizoValue) + "," + String(maansiPizoValue) + "," + String(distance));
     udp.endPacket();
   }
   //Wait for 1 second
