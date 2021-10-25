@@ -1,6 +1,6 @@
 import socket
 
-UDP_IP = "172.20.10.2"
+UDP_IP = "172.29.16.220"
 UDP_PORT = 8092
 
 sock = socket.socket(socket.AF_INET, # Internet
