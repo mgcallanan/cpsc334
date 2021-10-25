@@ -1,7 +1,7 @@
 #include "WiFi.h"
 #include <WiFiudp.h>
 
-int pizoelectric = 34;
+int piezoelectric = 34;
 
 // WiFi network name and password:
 const char * networkName = "yale wireless";
@@ -46,8 +46,7 @@ void setup(){
 }
 
 void loop(){
-  int maryPiezoValue = analogRead(pizoelectric);
-  // Serial.println(maryPiezoValue);
+  int maryPiezoValue = analogRead(piezoelectric);
   int maansiPiezoValue = random(4096);
   int distance = random(5);
 
@@ -67,14 +66,16 @@ void loop(){
           packetBuffer[len] = 0;
         }
     
-        Serial.println("RSSI:");
-    
+        Serial.println("MaansiPiezo,RSSI:");
+
+        // Packet being sent in the format: "{MaansiPiezoElectricValue},{RSSI}"
+        // String will be processed in Python
         Serial.println(packetBuffer);
       }
 
     //Send a packet to laptop with distance and piezo values
     udp.beginPacket(laptopudpAddress,laptopudpPort);
-    udp.print(String(maryPiezoValue) + "," + String(maansiPiezoValue) + "," + String(packetBuffer));
+    udp.print(String(maryPiezoValue) + "," + String(packetBuffer));
     udp.endPacket();
   }
   //Wait for 1 second
