@@ -4,23 +4,25 @@
 int photoResistor = 34;
 
 // WiFi network name and password:
-//const char * networkName = "yale wireless";
-//const char * networkPswd = "";
-
-const char * networkName = "Mary’s iPhone";
-const char * networkPswd = "marc@22!";
+const char * networkName = "yale wireless";
+const char * networkPswd = "";
 
 const char *softAPNetworkName = "MaryESP32AP";
 const char *softAPNetworkPswd = "BeCre@tive!";
 
+// Set up server communication
+WiFiServer server(80);
+IPAddress IP(172,20,10,8)
+IPAddress mask = (255, 255, 255, 0);
+
 //IP address to send UDP data to:
 // either use the ip address of the server or 
 // a network broadcast address
-//const char * udpAddress = "172.29.16.220";
-//const int udpPort = 8092;
-
-const char * udpAddress = "172.20.10.2";
+const char * udpAddress = "172.29.16.220";
 const int udpPort = 8092;
+
+//const char * udpAddress = "172.20.10.2";
+//const int udpPort = 8092;
 
 //Are we currently connected?
 boolean connected = false;
@@ -51,7 +53,14 @@ void loop(){
   delay(5000);
   //only send data when connected
   if(connected){
-    //Send a packet
+    // Start station communication with other ESP32
+    WifiClient client = server.available();
+    String message = client.readStringUntil('\r');
+    Serial.println("********************************");
+    Serial.println("From the station: " + request);
+    client.flush();
+    
+    //Send a packet to laptop
     udp.beginPacket(udpAddress,udpPort);
     udp.print(msg + " mary");  // USES .print INSTEAD OF .write
     udp.endPacket();
@@ -72,6 +81,8 @@ void connectToWiFi(const char * ssid, const char * pwd, const char * soft_ap_ssi
   WiFi.mode(WIFI_MODE_APSTA);
  
   WiFi.softAP(soft_ap_ssid, soft_ap_pwd);
+  Wifi.softAPConfig(IP, IP, mask);
+  server.begin()
   
   //Initiate connection
   WiFi.begin(ssid, pwd);
