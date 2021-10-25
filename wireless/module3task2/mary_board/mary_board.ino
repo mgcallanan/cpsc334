@@ -10,15 +10,13 @@ const char * networkPswd = "";
 const char *softAPNetworkName = "MaryESP32AP";
 const char *softAPNetworkPswd = "BeCre@tive!";
 
-// IP Address and port of laptop over which to send UDP data
-
 // Mary Laptop IP
-const char * laptopudpAddress = "172.29.16.220";
-const int laptopudpPort = 8092;
+//const char * laptopudpAddress = "172.29.16.220";
+//const int laptopudpPort = 8092;
 
 // Maansi Laptop IP
-//const char * laptopudpAddress = "172.20.10.2";
-//const int laptopudpPort = 8092;
+const char * laptopudpAddress = "172.29.28.52";
+const int laptopudpPort = 8090;
 
 //Are we currently connected?
 boolean connected = false;
@@ -34,6 +32,7 @@ unsigned int localPort = 8088;
 // buffer to hold incoming packet
 char packetBuffer[255];
 
+
 byte command[27] = {0x20, 0x00, 0x00, 0x00, 0x16, 0x02, 0x62, 0x3A, 0xD5, 0xED, 0xA3, 0x01, 0xAE, 0x08, 0x2D, 0x46, 0x61, 0x41, 0xA7, 0xF6, 0xDC, 0xAF, 0xD3, 0xE6, 0x00, 0x00, 0x1E};
 
 void setup(){
@@ -47,10 +46,9 @@ void setup(){
 
 void loop(){
   int maryPiezoValue = analogRead(piezoelectric);
-  int maansiPiezoValue = random(4096);
-  int distance = random(5);
-
-  
+  Serial.println(maryPiezoValue);
+  int maansiPiezoValue = 0;
+  int distance = random(-50,-10);
   delay(100);
   
   // Only send/receive UDP data when connected to WiFi
@@ -65,6 +63,7 @@ void loop(){
         if (len > 0) {
           packetBuffer[len] = 0;
         }
+
     
         Serial.println("MaansiPiezo,RSSI:");
 

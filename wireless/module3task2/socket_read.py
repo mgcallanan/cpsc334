@@ -14,14 +14,20 @@ rssi_queue = []
 # Sum total of values in the RSSI Queue
 rssi_total = 0
 
+# Store last value for sensors
+last_mary_pizo = -1
+last_maansi_pizo = -1
+
+PIZO_JUMP_THESHOLD = 250
+
 # Set up receiving for ESP32 wifi messages
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Maansi Laptop IP
-# s.bind(("172.29.28.52", 8090 )) # Local ip address
+s.bind(("172.29.28.52", 8090 )) # Local ip address
 
 # Mary Laptop IP
-s.bind(("172.29.16.220", 8092 )) # Local ip address
+# s.bind(("172.29.16.220", 8092 )) # Local ip address
 
 # Set up sending OSC messages to supercollider
 sc_client = udp_client.SimpleUDPClient("127.0.0.1", 57120) # Default ip and port for SC
@@ -37,7 +43,7 @@ def denoise_dinstance(curr_dist):
     removed_rssi = 0
 
     # If RSSI Queue is at 10, then remove the oldest value and calculate average of the queue
-    if len(rssi_queue) > 10:
+    if len(rssi_queue) > 5:
         removed_rssi = rssi_queue.pop(0)
         rssi_total -= removed_rssi
     
@@ -50,6 +56,8 @@ while True:
     # Receive data string of sensor values
     data, addr = s.recvfrom(1024)
     data_arr = data.decode("ASCII").split(',')
+
+    print(data_arr)
     
     # Extract int values from string array
     mary_pizo = int(data_arr[MARY_PIZO_IND])
@@ -58,5 +66,16 @@ while True:
     
     print(mary_pizo, maansi_pizo, distance)
 
-    # Send OSC message to supercollider
-    sc_client.send_message("/print", distance)
+    # Send pulse information via OSC
+    if last_mary_pizo != -1 and mary_pizo - last_mary_pizo > PIZO_JUMP_THESHOLD:
+        sc_client.send_message("/marypulse", 1)
+        print("MARY PULSE ACTIVATED!")
+    if last_maansi_pizo != -1 and maansi_pizo - last_maansi_pizo > PIZO_JUMP_THESHOLD:
+        sc_client.send_message("/maansipulse", 1)
+        print("MAANSI PULSE ACTIVATED!")
+
+    last_mary_pizo = mary_pizo
+    last_maansi_pizo = maansi_pizo
+
+    # Send OSC frequency message to supercollider
+    sc_client.send_message("/distance", (distance + 60) * 15 + 50)
