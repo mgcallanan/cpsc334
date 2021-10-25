@@ -19,6 +19,9 @@ const char * networkPswd = "BeCre@tive!";
 const char * udpAddress = "172.20.10.8";
 const int udpPort = 8092;
 
+IPAddress server(172,20,10,8);
+WiFiClient client;
+
 //Are we currently connected?
 boolean connected = false;
 
@@ -43,16 +46,18 @@ void loop(){
   //int values = random(0, 100); // GENERATE TEST FLOAT or
   // int values = hallRead();
   String msg = String(values); // CONVERT FLOAT TO STRING
+
+  // Get signal time a.k.a distance from other ESP32 serving as access board
   long rssi = WiFi.RSSI();
   Serial.print("RSSI:");
   Serial.println(rssi);
-  //only send data when connected
-//  if(connected){
-//    //Send a packet
-//    udp.beginPacket(udpAddress,udpPort);
-//    udp.print(msg + " maansi");  // USES .print INSTEAD OF .write
-//    udp.endPacket();
-//  }
+
+  // Connect to other ESP
+  client.connect(server, 80);
+  client.print(rssi + "\r");
+  client.flush();
+  client.stop();
+  
   //Wait for 1 second
   delay(10);
 }
