@@ -4,11 +4,8 @@
 int photoResistor = 34;
 
 // WiFi network name and password:
-//const char * networkName = "yale wireless";
-//const char * networkPswd = "";
-
-const char * networkName = "Mary’s iPhone";
-const char * networkPswd = "marc@22!";
+const char * networkName = "yale wireless";
+const char * networkPswd = "";
 
 const char *softAPNetworkName = "MaryESP32AP";
 const char *softAPNetworkPswd = "BeCre@tive!";
@@ -16,11 +13,9 @@ const char *softAPNetworkPswd = "BeCre@tive!";
 //IP address to send UDP data to:
 // either use the ip address of the server or 
 // a network broadcast address
-//const char * udpAddress = "172.29.16.220";
-//const int udpPort = 8092;
 
-const char * udpAddress = "172.20.10.2";
-const int udpPort = 8092;
+const char * udpAddress = "172.29.28.52";
+const int udpPort = 8090;
 
 //Are we currently connected?
 boolean connected = false;
@@ -41,11 +36,13 @@ void setup(){
 }
 
 void loop(){
-  float values = analogRead(photoResistor);
+  int maryValue = analogRead(photoResistor);
+  int maansiValue = random(5);
+  int distance = random(5);
   // Serial.println(String(values) + " mary");
   //int values = random(0, 100); // GENERATE TEST FLOAT or
   // int values = hallRead();
-  String msg = String(values); // CONVERT FLOAT TO STRING
+  //String msg = String(values); // CONVERT FLOAT TO STRING
   Serial.print("Stations connected: ");
   Serial.println(WiFi.softAPgetStationNum());
   delay(5000);
@@ -53,7 +50,7 @@ void loop(){
   if(connected){
     //Send a packet
     udp.beginPacket(udpAddress,udpPort);
-    udp.print(msg + " mary");  // USES .print INSTEAD OF .write
+    udp.print(String(maryValue) + ", " + String(maansiValue) + ", " + String(distance));
     udp.endPacket();
   }
   //Wait for 1 second
