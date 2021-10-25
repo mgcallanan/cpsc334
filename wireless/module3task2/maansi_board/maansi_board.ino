@@ -1,28 +1,24 @@
 #include "WiFi.h"
 #include <WiFiUdp.h>
 
-int photoResistor = 34;
 int piezo = 35;
 
 // WiFi network name and password:
 //const char * networkName = "yale wireless";
 //const char * networkPswd = "";
 
+// WiFi network name and password of hotspot created by the other ESP32
 const char * networkName = "MaryESP32AP";
 const char * networkPswd = "BeCre@tive!";
 
-//IP address to send UDP data to:
-// either use the ip address of the server or 
-// a network broadcast address
-
+// IP Address of the other ESP32 to send UDP messages over
 const char * espUdpAddress = "192.168.4.1";
 const int espUdpPort = 8088;
 
-
-//Are we currently connected?
+// Are we currently connected?
 boolean connected = false;
 
-//The udp library class
+// The UDP library class
 WiFiUDP udp;
 
 byte command[27] = {0x20, 0x00, 0x00, 0x00, 0x16, 0x02, 0x62, 0x3A, 0xD5, 0xED, 0xA3, 0x01, 0xAE, 0x08, 0x2D, 0x46, 0x61, 0x41, 0xA7, 0xF6, 0xDC, 0xAF, 0xD3, 0xE6, 0x00, 0x00, 0x1E};
@@ -38,15 +34,10 @@ void setup(){
 }
 
 void loop(){
-  // piezoelectric board
-//  float pie = analogRead(piezo);
-//  Serial.print("pie ");
-//  Serial.println(pie);
-  float values = analogRead(photoResistor);
-  // Serial.println(String(values) + " maansi");
-  //int values = random(0, 100); // GENERATE TEST FLOAT or
-  // int values = hallRead();
-  String msg = String(values); // CONVERT FLOAT TO STRING
+  // Uncomment when piezoelectric functionality is added
+  // float pie = analogRead(piezo);
+  // Serial.print("pie ");
+  // Serial.println(pie);
 
   // Get signal time a.k.a distance from other ESP32 serving as access board
   long rssi = WiFi.RSSI();
@@ -54,6 +45,7 @@ void loop(){
   Serial.println(rssi);
   
   if (connected) {
+    // Send RSSI values back to ESP32 hotspot to serve as distance values
     udp.beginPacket(espUdpAddress,espUdpPort);
     udp.print(String(rssi));
     udp.endPacket();
@@ -84,8 +76,8 @@ void WiFiEvent(WiFiEvent_t event){
           //When connected set 
           Serial.print("WiFi connected! IP address: ");
           Serial.println(WiFi.localIP());  
-          //initializes the UDP state
-          //This initializes the transfer buffer
+          
+          // Starts UDP system and initializes transfer buffer
           udp.begin(WiFi.localIP(),espUdpPort);
           connected = true;
           break;

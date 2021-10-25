@@ -10,10 +10,13 @@ const char * networkPswd = "";
 const char *softAPNetworkName = "MaryESP32AP";
 const char *softAPNetworkPswd = "BeCre@tive!";
 
-// IP Address and port to send UDP data to laptop
+// IP Address and port of laptop over which to send UDP data
+
+// Mary Laptop IP
 const char * laptopudpAddress = "172.29.16.220";
 const int laptopudpPort = 8092;
 
+// Maansi Laptop IP
 //const char * laptopudpAddress = "172.20.10.2";
 //const int laptopudpPort = 8092;
 
@@ -23,11 +26,13 @@ boolean connected = false;
 //The udp library class
 WiFiUDP udp;
 
-// For receiving UDP messages
-unsigned int localPort = 8088;      // local port to listen on
+// For receiving UDP messages from other ESP32
 
-char packetBuffer[255]; //buffer to hold incoming packet
-char  ReplyBuffer[] = "acknowledged";       // a string to send back
+// local port to listen on
+unsigned int localPort = 8088;
+
+// buffer to hold incoming packet
+char packetBuffer[255];
 
 byte command[27] = {0x20, 0x00, 0x00, 0x00, 0x16, 0x02, 0x62, 0x3A, 0xD5, 0xED, 0xA3, 0x01, 0xAE, 0x08, 0x2D, 0x46, 0x61, 0x41, 0xA7, 0xF6, 0xDC, 0xAF, 0xD3, 0xE6, 0x00, 0x00, 0x1E};
 
@@ -41,42 +46,35 @@ void setup(){
 }
 
 void loop(){
-  int maryPizoValue = analogRead(pizoelectric);
-  // Serial.println(maryPizoValue);
-  int maansiPizoValue = random(4096);
+  int maryPiezoValue = analogRead(pizoelectric);
+  // Serial.println(maryPiezoValue);
+  int maansiPiezoValue = random(4096);
   int distance = random(5);
 
   
   delay(100);
-  //only send data when connected
+  
+  // Only send/receive UDP data when connected to WiFi
   if(connected){
-    Serial.println("Connected!");
 
+      // Check to see if receiving any UDP packets from other ESP32
       int packetSize = udp.parsePacket();
-      Serial.println(packetSize);
       
-      if (packetSize) {
-    
-    
-        IPAddress remoteIp = udp.remoteIP();
-    
-        // read the packet into packetBufffer
-    
+      if (packetSize) {    
         int len = udp.read(packetBuffer, 255);
     
         if (len > 0) {
-    
           packetBuffer[len] = 0;
-    
         }
     
         Serial.println("RSSI:");
     
         Serial.println(packetBuffer);
       }
-    //Send a packet to laptop
+
+    //Send a packet to laptop with distance and piezo values
     udp.beginPacket(laptopudpAddress,laptopudpPort);
-    udp.print(String(maryPizoValue) + "," + String(maansiPizoValue) + "," + String(packetBuffer));
+    udp.print(String(maryPiezoValue) + "," + String(maansiPiezoValue) + "," + String(packetBuffer));
     udp.endPacket();
   }
   //Wait for 1 second
