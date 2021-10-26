@@ -3,7 +3,6 @@ from pythonosc import udp_client
 import math
 import time
 
-
 # Define array indices for esp32 input
 MARY_PIZO_IND = 0
 MAANSI_PIZO_IND = 1
