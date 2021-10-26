@@ -1,7 +1,7 @@
 import socket
 from pythonosc import udp_client
 import math
-
+import time
 
 # Define array indices for esp32 input
 MARY_PIZO_IND = 0
@@ -19,6 +19,10 @@ last_mary_pizo = -1
 last_maansi_pizo = -1
 
 PIZO_JUMP_THESHOLD = 250
+
+# Timer since last time the ESP32 was tapped
+mary_time_since_active = time.time()
+maansi_time_since_active = time.time()
 
 # Set up receiving for ESP32 wifi messages
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -70,9 +74,20 @@ while True:
     if last_mary_pizo != -1 and mary_pizo - last_mary_pizo > PIZO_JUMP_THESHOLD:
         sc_client.send_message("/marypulse", 1)
         print("MARY PULSE ACTIVATED!")
+        
+        mary_time_since_active = time.time()
     if last_maansi_pizo != -1 and maansi_pizo - last_maansi_pizo > PIZO_JUMP_THESHOLD:
         sc_client.send_message("/maansipulse", 1)
         print("MAANSI PULSE ACTIVATED!")
+
+        maansi_time_since_active = time.time()
+        if abs(maansi_time_since_active - mary_time_since_active) < 0.1:
+            print("BOTH TAPPED AT THE SAME TIME!")
+            sc_client.send_message("/bothpulse", 1)
+
+    if abs(distance) < 15:
+        print("BOXES ARE TOUCHING")
+        sc_client.send_message("/boxestouching", 1)
 
     last_mary_pizo = mary_pizo
     last_maansi_pizo = maansi_pizo
