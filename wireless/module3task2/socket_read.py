@@ -60,36 +60,33 @@ while True:
     # Receive data string of sensor values
     data, addr = s.recvfrom(1024)
     data_arr = data.decode("ASCII").split(',')
-    print(data_arr)
     
     # Extract int values from string array
     mary_pizo = int(data_arr[MARY_PIZO_IND])
     maansi_pizo = int(data_arr[MAANSI_PIZO_IND])
     distance = denoise_dinstance(int(data_arr[DISTANCE_IND])) # Denoise the RSSI (distance) values
     
-    print(mary_pizo, maansi_pizo, distance, mary_time_since_active - maansi_time_since_active, maansi_time_since_active - mary_time_since_active)
-
-    # Send pulse information via OSC
+    # Detect if board 1 was hit
     if last_mary_pizo != -1 and mary_pizo - last_mary_pizo > PIZO_JUMP_THESHOLD:
         sc_client.send_message("/marypulse", 1)
-        print("MARY PULSE ACTIVATED!")
         mary_time_since_active = time.time()
 
+    # Detect if board 2 was hit
     if last_maansi_pizo != -1 and maansi_pizo - last_maansi_pizo > PIZO_JUMP_THESHOLD:
-        sc_client.send_message("/maansipulse", 1)
-        print("MAANSI PULSE ACTIVATED!")
-
         maansi_time_since_active = time.time()
+        # Check if boards were hit at the same time
         if abs(maansi_time_since_active - mary_time_since_active) < 0.7:
-            print("BOTH TAPPED AT THE SAME TIME!")
             sc_client.send_message("/lose", 1)
+        else:
+            sc_client.send_message("/maansipulse", 1)
 
+    # Check if the boards are touching
     if abs(distance) < 15:
-        print("BOXES ARE TOUCHING")
         sc_client.send_message("/win", 1)
 
+    # Update previous stored value
     last_mary_pizo = mary_pizo
     last_maansi_pizo = maansi_pizo
 
-    # Send OSC frequency message to supercollider
+    # Convert distance to frequency and send to supercollider
     sc_client.send_message("/distance", (distance + 60) * 15 + 50)
