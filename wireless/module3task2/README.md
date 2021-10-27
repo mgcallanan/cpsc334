@@ -48,6 +48,10 @@ The code that is used to collect the piezoelectric sensor and RSSI data is found
 
 ### Python
 
+The python code that receives and processes the WiFi messages from the ESP32s and communicated OSC messages to Supercollider is contained in `socket_read.py`. To run it, be sure to update the IP address in the code to match the ip address of your laptop, and then run `python3 socket_read.py`.
+
 ### SuperCollider
+The Supercollider code that receives OSC messages from python and plays the game audio is found in `emit_sounds.scd`. To run the Supercollider code for the first time, press Cmd + Enter while highlighting the line `s.boot` to start the server. After that, place your cursor anywhere in the remaining block of code and again press Cmd + Enter. Make sure that the ESP32s are both plugged in and that the python code is running, and the game should be ready to play!
 
 ## Demo
+Watch the video demo of the game being played here: https://www.youtube.com/watch?v=ZMSY8BEKJMI
