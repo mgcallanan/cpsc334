@@ -11,3 +11,7 @@ This is my respository for work done for CPSC 334 at Yale University in Fall 202
 
 - Task 1: [./interactive_devices/task1](https://github.com/mgcallanan/cpsc334/tree/master/interactive_devices/task1)
 - Task 2: [./interactive_devices/task2](https://github.com/mgcallanan/cpsc334/tree/master/interactive_devices/task2)
+
+## Module 3: Installation Art
+
+- Task: [./wireless/module3task2](https://github.com/mgcallanan/cpsc334/tree/master/wireless/module3task2)
