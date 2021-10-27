@@ -10,11 +10,7 @@ const char * networkPswd = "";
 const char *softAPNetworkName = "MaryESP32AP";
 const char *softAPNetworkPswd = "BeCre@tive!";
 
-// Mary Laptop IP
-//const char * laptopudpAddress = "172.29.16.220";
-//const int laptopudpPort = 8092;
-
-// Maansi Laptop IP
+// Laptop IP
 const char * laptopudpAddress = "172.29.28.52";
 const int laptopudpPort = 8090;
 
@@ -45,11 +41,9 @@ void setup(){
 }
 
 void loop(){
+  
+  // Read piezoelectric sensor data
   int maryPiezoValue = analogRead(piezoelectric);
-  Serial.println(maryPiezoValue);
-  int maansiPiezoValue = 0;
-  int distance = random(-50,-10);
-  delay(100);
   
   // Only send/receive UDP data when connected to WiFi
   if(connected){

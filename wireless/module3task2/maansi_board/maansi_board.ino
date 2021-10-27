@@ -32,10 +32,10 @@ void setup(){
 }
 
 void loop(){
-  // Uncomment when piezoelectricelectric functionality is added
-   int pie = analogRead(piezoelectric);
-   Serial.print("pie ");
-   Serial.println(pie);
+  // Read piezoelectric sensor data
+  int pie = analogRead(piezoelectric);
+  Serial.print("pie ");
+  Serial.println(pie);
 
   // Get signal time a.k.a distance from other ESP32 serving as access board
   long rssi = WiFi.RSSI();
