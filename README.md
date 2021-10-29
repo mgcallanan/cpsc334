@@ -15,3 +15,7 @@ This is my respository for work done for CPSC 334 at Yale University in Fall 202
 ## Module 3: Installation Art
 
 - Task: [./wireless/module3task2](https://github.com/mgcallanan/cpsc334/tree/master/wireless/module3task2)
+
+## Module 4/5: Kinetic Sculpture
+
+- Task 1: [./motors/task1](https://github.com/mgcallanan/cpsc334/tree/master/motors/task1)
