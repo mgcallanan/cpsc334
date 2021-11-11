@@ -19,3 +19,4 @@ This is my respository for work done for CPSC 334 at Yale University in Fall 202
 ## Module 4/5: Kinetic Sculpture
 
 - Task 1: [./motors/task1](https://github.com/mgcallanan/cpsc334/tree/master/motors/task1)
+- Task 2: [./motors/task2](https://github.com/mgcallanan/cpsc334/tree/master/motors/task2)
