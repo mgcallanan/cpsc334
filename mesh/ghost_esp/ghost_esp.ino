@@ -2,9 +2,18 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+// FOR LED EYES
+const byte led_gpio1 = 32;
+const byte led_gpio2 = 33;
+
 // Global copy of remote
 esp_now_peer_info_t remote;
+
+// Global copy of motor ESP
+esp_now_peer_info_t motor;
+
 #define CHANNEL 1
+#define MOTOR_CHANNEL 0
 #define PRINTSCANRESULTS 0
 #define DELETEBEFOREPAIR 0
 
@@ -27,7 +36,9 @@ void ScanForRemote() {
   
   // Reset on each scan
   bool remoteFound = 0;
+  bool motorFound = 0;
   memset(&remote, 0, sizeof(remote));
+  memset(&motor, 0, sizeof(motor));
 
   Serial.println("");
   if (scanResults == 0) {
@@ -74,6 +85,29 @@ void ScanForRemote() {
 
         remoteFound = 1;
       }
+      // Check if the current device starts with `Ghost`
+      else if (SSID.indexOf("Motor") == 0) {
+        // SSID of interest
+        Serial.println("Found the Motor ESP.");
+        Serial.print(i + 1); Serial.print(": "); Serial.print(SSID); Serial.print(" ["); Serial.print(BSSIDstr); Serial.print("]"); Serial.print(" ("); Serial.print(rssi); Serial.print(")"); Serial.println("");
+        // Get BSSID => Mac Address of the Motor
+        int mac[6];
+        if ( 6 == sscanf(BSSIDstr.c_str(), "%x:%x:%x:%x:%x:%x",  &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5] ) ) {
+          for (int ii = 0; ii < 6; ++ii ) {
+            motor.peer_addr[ii] = (uint8_t) mac[ii];
+          }
+        }
+
+        rssi = abs(WiFi.RSSI(i));
+
+        // Pick a channel for connecting to the motor
+        motor.channel = MOTOR_CHANNEL;
+
+        // Do not encrypt the ESP Now connection
+        motor.encrypt = 0;
+
+        motorFound = 1;
+      }
     }
   }
 
@@ -81,6 +115,12 @@ void ScanForRemote() {
     Serial.println("Remote Found, processing..");
   } else {
     Serial.println("Remote Not Found, trying again.");
+  }
+
+  if (motorFound) {
+    Serial.println("Motor Found, processing..");
+  } else {
+    Serial.println("Motor Not Found, trying again.");
   }
 
   // Clean up WiFi scan RAM
@@ -92,7 +132,7 @@ void ScanForRemote() {
 bool manageRemote() {
   if (remote.channel == CHANNEL) {
     if (DELETEBEFOREPAIR) {
-      deletePeer();
+      deletePeers();
     }
 
     Serial.print("Remote Status: ");
@@ -137,45 +177,134 @@ bool manageRemote() {
   }
 }
 
-void deletePeer() {
-  esp_err_t delStatus = esp_now_del_peer(remote.peer_addr);
+// Check if the motor is already paired with the exhibit
+//  If not, pair them
+bool manageMotor() {
+  if (motor.channel == MOTOR_CHANNEL) {
+    if (DELETEBEFOREPAIR) {
+      deletePeers();
+    }
+
+    Serial.print("Motor Status: ");
+    // Check if the peer exists
+    bool exists = esp_now_is_peer_exist(motor.peer_addr);
+    if (exists) {
+      // Motor already paired.
+      Serial.println("Already Paired");
+      return true;
+    } else {
+      // Motor not paired, attempt pair
+      esp_err_t addStatus = esp_now_add_peer(&motor);
+      if (addStatus == ESP_OK) {
+        // Pair success
+        Serial.println("Pair success");
+        return true;
+      } else if (addStatus == ESP_ERR_ESPNOW_NOT_INIT) {
+        // How did we get so far!!
+        Serial.println("ESPNOW Not Init");
+        return false;
+      } else if (addStatus == ESP_ERR_ESPNOW_ARG) {
+        Serial.println("Invalid Argument");
+        return false;
+      } else if (addStatus == ESP_ERR_ESPNOW_FULL) {
+        Serial.println("Peer list full");
+        return false;
+      } else if (addStatus == ESP_ERR_ESPNOW_NO_MEM) {
+        Serial.println("Out of memory");
+        return false;
+      } else if (addStatus == ESP_ERR_ESPNOW_EXIST) {
+        Serial.println("Peer Exists");
+        return true;
+      } else {
+        Serial.println("Not sure what happened");
+        return false;
+      }
+    }
+  } else {
+    // No motor found to process
+    Serial.println("No Motor found to process");
+    return false;
+  }
+}
+
+void deletePeers() {
+  esp_err_t remoteDelStatus = esp_now_del_peer(remote.peer_addr);
+  esp_err_t motorDelStatus = esp_now_del_peer(motor.peer_addr);
   Serial.print("Remote Delete Status: ");
-  if (delStatus == ESP_OK) {
+  if (remoteDelStatus == ESP_OK) {
     // Delete success
     Serial.println("Success");
-  } else if (delStatus == ESP_ERR_ESPNOW_NOT_INIT) {
+  } else if (remoteDelStatus == ESP_ERR_ESPNOW_NOT_INIT) {
     // How did we get so far!!
-    Serial.println("ESPNOW Not Init");
-  } else if (delStatus == ESP_ERR_ESPNOW_ARG) {
-    Serial.println("Invalid Argument");
-  } else if (delStatus == ESP_ERR_ESPNOW_NOT_FOUND) {
-    Serial.println("Peer not found.");
+    Serial.println("ESPNOW Not Init for remote");
+  } else if (remoteDelStatus == ESP_ERR_ESPNOW_ARG) {
+    Serial.println("Invalid Argument for remote");
+  } else if (remoteDelStatus == ESP_ERR_ESPNOW_NOT_FOUND) {
+    Serial.println("Remote Peer not found.");
   } else {
-    Serial.println("Not sure what happened");
+    Serial.println("Not sure what happened with remote");
+  }
+
+  if (motorDelStatus == ESP_OK) {
+    // Delete success
+    Serial.println("Success");
+  } else if (motorDelStatus == ESP_ERR_ESPNOW_NOT_INIT) {
+    // How did we get so far!!
+    Serial.println("ESPNOW Not Init for motor");
+  } else if (motorDelStatus == ESP_ERR_ESPNOW_ARG) {
+    Serial.println("Invalid Argument for motor");
+  } else if (motorDelStatus == ESP_ERR_ESPNOW_NOT_FOUND) {
+    Serial.println("Motor Peer not found.");
+  } else {
+    Serial.println("Not sure what happened with motor");
   }
 }
 
 // Send RSSI data to remote
-void sendData() {
+void sendRemoteData() {
   const uint8_t *peer_addr = remote.peer_addr;
   Serial.print("Sending: "); Serial.println(rssi);
   esp_err_t result = esp_now_send(peer_addr, &rssi, sizeof(rssi));
   Serial.print("Send Status: ");
   if (result == ESP_OK) {
-    Serial.println("Success");
+    Serial.println("Success for remote");
   } else if (result == ESP_ERR_ESPNOW_NOT_INIT) {
     // How did we get so far!!
-    Serial.println("ESPNOW not Init.");
+    Serial.println("ESPNOW not Init for remote.");
   } else if (result == ESP_ERR_ESPNOW_ARG) {
-    Serial.println("Invalid Argument");
+    Serial.println("Invalid Argument for remote");
   } else if (result == ESP_ERR_ESPNOW_INTERNAL) {
-    Serial.println("Internal Error");
+    Serial.println("Internal Error for remote");
   } else if (result == ESP_ERR_ESPNOW_NO_MEM) {
-    Serial.println("ESP_ERR_ESPNOW_NO_MEM");
+    Serial.println("ESP_ERR_ESPNOW_NO_MEM in remote");
   } else if (result == ESP_ERR_ESPNOW_NOT_FOUND) {
-    Serial.println("Peer not found.");
+    Serial.println("Remote Peer not found.");
   } else {
-    Serial.println("Not sure what happened");
+    Serial.println("Not sure what happened with remote");
+  }
+}
+
+// Send RSSI data to motor
+void sendMotorData() {
+  const uint8_t *peer_addr = motor.peer_addr;
+  Serial.print("Sending: "); Serial.println(rssi);
+  esp_err_t result = esp_now_send(peer_addr, &rssi, sizeof(rssi));
+  Serial.print("Send Status: ");
+  if (result == ESP_OK) {
+    Serial.println("Success for motor");
+  } else if (result == ESP_ERR_ESPNOW_NOT_INIT) {
+    // How did we get so far!!
+    Serial.println("ESPNOW not Init for motor.");
+  } else if (result == ESP_ERR_ESPNOW_ARG) {
+    Serial.println("Invalid Argument for motor");
+  } else if (result == ESP_ERR_ESPNOW_INTERNAL) {
+    Serial.println("Internal Error for motor");
+  } else if (result == ESP_ERR_ESPNOW_NO_MEM) {
+    Serial.println("ESP_ERR_ESPNOW_NO_MEM in motor");
+  } else if (result == ESP_ERR_ESPNOW_NOT_FOUND) {
+    Serial.println("Motor Peer not found.");
+  } else {
+    Serial.println("Not sure what happened with motor");
   }
 }
 
@@ -189,10 +318,32 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.println(WiFi.RSSI());
 }
 
+// Configure AP SSID
+void configDeviceAP() {
+  const char *SSID = "Stairwell_1";
+  bool result = WiFi.softAP(SSID, "Stairwell_1_Password", CHANNEL, 0);
+  if (!result) {
+    Serial.println("AP Config failed.");
+  } else {
+    Serial.println("AP Config Success. Broadcasting with AP: " + String(SSID));
+  }
+}
+
 void setup() {
   Serial.begin(115200);
+
+  // FOR LED EYES
+  // initialize digital pin LED_BUILTIN as an output.
+  pinMode(led_gpio1, OUTPUT);
+  pinMode(led_gpio2, OUTPUT);
+  // END OF LED EYES CODE
+
   //Set device in STA mode to begin with
-  WiFi.mode(WIFI_STA);
+  // CHANGED TO BE AN AP AND STA
+  WiFi.mode(WIFI_MODE_APSTA);
+ 
+  // configure device AP mode
+  configDeviceAP();
   
   // This is the mac address of the pupper show in Station Mode
   Serial.print("STA MAC: "); Serial.println(WiFi.macAddress());
@@ -206,6 +357,31 @@ void setup() {
 }
 
 void loop() {
+  // LED EYES
+  digitalWrite(led_gpio1, HIGH);
+  delay (1000);
+  digitalWrite(led_gpio2, HIGH);
+  delay (1000);
+
+  // random to make lights blink or not
+  int blink = random(100);
+
+  if (blink < 20) {
+    digitalWrite(led_gpio1, LOW);
+    delay (1000);
+  }
+  else if (blink > 80) {
+    digitalWrite(led_gpio2, LOW);
+    delay (1000);
+  }
+  else  if (blink >= 20 && blink <= 60) {
+    digitalWrite(led_gpio1, LOW);
+    delay (1000);
+    digitalWrite(led_gpio2, LOW);
+    delay (1000);
+  }
+  // END LED EYES
+  
   // In the loop we scan for remote
   ScanForRemote();
   // If remote is found, it would be populate in `remote` variable
@@ -217,7 +393,7 @@ void loop() {
     if (isPaired) {
       // Pair success or already paired
       // Send data to device
-      sendData();
+      sendRemoteData();
     } else {
       // Remote pair failed
       Serial.println("Remote pair failed!");
@@ -225,6 +401,25 @@ void loop() {
   }
   else {
     // No remote found to process
+  }
+
+  // If motor is found, it would be populate in `motor` variable
+  // We will check if `motor` is defined and then we proceed further
+  if (motor.channel == MOTOR_CHANNEL) { // check if motor channel is defined
+    // `motor` is defined
+    // Add motor as peer if it has not been added already
+    bool isPaired = manageMotor();
+    if (isPaired) {
+      // Pair success or already paired
+      // Send data to device
+      sendMotorData();
+    } else {
+      // Motor pair failed
+      Serial.println("Motor pair failed!");
+    }
+  }
+  else {
+    // No motor found to process
   }
 
   // wait for 1ms to run the logic again

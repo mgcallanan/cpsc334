@@ -32,7 +32,7 @@ void setup(){
   // set the speed at 5 rpm
   //myStepper1.setSpeed(5);
   //myStepper2.setSpeed(5);
-  myStepper3.setSpeed(20);
+  myStepper3.setSpeed(15);
 
   
   Serial.begin(115200);
