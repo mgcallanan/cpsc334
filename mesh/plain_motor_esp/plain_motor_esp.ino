@@ -30,8 +30,8 @@ void setup(){
   
   // FOR STEPPER
   // set the speed at 5 rpm
-  myStepper1.setSpeed(20);
-  myStepper2.setSpeed(20);
+  //myStepper1.setSpeed(5);
+  //myStepper2.setSpeed(5);
   myStepper3.setSpeed(20);
 
   
@@ -45,20 +45,20 @@ void loop(){
 
   // Spin the stepper motor x * 360 deg
   for (int i = 0; i < NUMBER_OF_STEPS_PER_REV * x; i++) {
-    myStepper1.step(1);
-    myStepper2.step(1);
-    myStepper3.step(1);
-  }
-
-  // pause for troubleshooting
-  delay(5000);
-
-  // Spin the stepper motor an opposite x* 360 deg
-  for (int i = 0; i < NUMBER_OF_STEPS_PER_REV * x; i++) {
-    myStepper1.step(-1);
-    myStepper2.step(-1);
+    //myStepper1.step(1);
+    //myStepper2.step(1);
     myStepper3.step(-1);
   }
+
+//  // pause for troubleshooting
+//  delay(5000);
+//
+//  // Spin the stepper motor an opposite x* 360 deg
+//  for (int i = 0; i < NUMBER_OF_STEPS_PER_REV * x; i++) {
+//    //myStepper1.step(-1);
+//    //myStepper2.step(-1);
+//    myStepper3.step(-1);
+ // }
   
 
 
