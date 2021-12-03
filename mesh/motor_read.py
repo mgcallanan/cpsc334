@@ -16,6 +16,7 @@ while True:
     if next_line:
         decoded_line = data[0:len(data)-2].decode("utf-8")
         print(decoded_line)
+        
         sc_client.send_message("/rssi", int(decoded_line))
         next_line = False
     if data == b'Last Packet Recv Data:\r\n':
