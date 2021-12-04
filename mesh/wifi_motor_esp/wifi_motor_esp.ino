@@ -95,7 +95,7 @@ void setup(){
   // set the speed at 5 rpm
 //  myStepper1.setSpeed(20);
 //  myStepper2.setSpeed(20);
-  myStepper3.setSpeed(20);
+  myStepper3.setSpeed(15);
 
   
   Serial.begin(115200);
@@ -132,19 +132,24 @@ void setup(){
 
 }
 
-
+int count = 0;
 void loop(){
 
   int x = 5;
 
-  //DELETE
-  Serial.println("Last Packet Recv Data:"); Serial.println(random(50, 1000));
+  // The number of revoluations until the spool hits the bottom
+  int numRevsToBottom = 20;
 
   // Spin the stepper motor x * 360 deg
-  for (int i = 0; i < NUMBER_OF_STEPS_PER_REV * x; i++) {
-    //myStepper1.step(1);
-    //myStepper2.step(1);
+  for (int i = 0; i < NUMBER_OF_STEPS_PER_REV * x * numRevsToBottom; i++) {
+    myStepper3.step(1);
+  }
+  delay(5000);
+  for (int i = 0; i < NUMBER_OF_STEPS_PER_REV * x * numRevsToBottom; i++) {
     myStepper3.step(-1);
   }
+  count++;
+  Serial.println(count);
+
 
 }

@@ -62,8 +62,8 @@ void ScanForRemote() {
       }
       delay(10);
       
-      // Check if the current device starts with `Ghost`
-      if (SSID.indexOf("Ghost") == 0) {
+      // Check if the current device starts with `Spectre`
+      if (SSID.indexOf("Spectre") == 0) {
         // SSID of interest
         Serial.println("Found a Remote.");
         Serial.print(i + 1); Serial.print(": "); Serial.print(SSID); Serial.print(" ["); Serial.print(BSSIDstr); Serial.print("]"); Serial.print(" ("); Serial.print(rssi); Serial.print(")"); Serial.println("");
@@ -85,7 +85,7 @@ void ScanForRemote() {
 
         remoteFound = 1;
       }
-      // Check if the current device starts with `Ghost`
+      // Check if the current device starts with `Motor`
       else if (SSID.indexOf("Motor") == 0) {
         // SSID of interest
         Serial.println("Found the Motor ESP.");
