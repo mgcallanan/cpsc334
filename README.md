@@ -4,7 +4,7 @@ This is my respository for work done for CPSC 334 at Yale University in Fall 202
 
 ## Module 1: Generative Art
 
-- Task 1: [2021-cpsc-334-a1-g1/a1 (oustide repository)](https://github.com/2021f-cpsc-334-a1-g1/a1)
+- Task 1: [2021-cpsc-334-a1-g1/a1 (outside repository)](https://github.com/2021f-cpsc-334-a1-g1/a1)
 - Task 2: [./generative_art](https://github.com/mgcallanan/cpsc334/tree/master/generative_art)
 
 ## Module 2: Interactive Devices
