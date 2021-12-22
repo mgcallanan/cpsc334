@@ -4,7 +4,7 @@ This module was done as a final project for CPSC 334: Creative Embedded Systems 
 
 All code and other files relating to this project can be found in this repository.
 
-![Image of Facial Friend at CPSC 334 Final Exhibition](./facialfriend.heic)
+![Image of Facial Friend at CPSC 334 Final Exhibition](./facialfriend.jpg)
 
 ## Overview
 
