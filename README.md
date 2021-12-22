@@ -24,3 +24,7 @@ This is my respository for work done for CPSC 334 at Yale University in Fall 202
 ## Module 6: Mesh Network
 
 - Task : [./mesh](https://github.com/mgcallanan/cpsc334/tree/master/mesh)
+
+## Module 7: final Project
+
+- Task : [./final](https://github.com/mgcallanan/cpsc334/tree/master/final)
